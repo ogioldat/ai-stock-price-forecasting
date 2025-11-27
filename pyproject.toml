@@ -1,0 +1,38 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "FastAPI service for AI Stock Price Prediction Project"
+authors = [
+  {name = "Marcin", email = "zub@student.agh.edu.pl"},
+  {name = "Modar", email = "modar@student.agh.edu.pl"},
+  {name = "Tomek", email = "tomek@student.agh.edu.pl"},
+]
+readme = "README.md"
+requires-python = "==3.13.*"
+dependencies = [
+  "fastapi",
+  "pydantic",
+  "uvicorn[standard]",
+  "starlette"
+]
+
+[dependency-groups]
+dev = ["fastapi[standard]", "pytest"]
+
+[tool.uv.dependency-groups.dev]
+dependencies = [
+  "pytest",
+  "httpx"
+]
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+testpaths = "api/tests"
+pythonpath = "api"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.coverage.report]
+omit = ["api/src/asgi.py"]
