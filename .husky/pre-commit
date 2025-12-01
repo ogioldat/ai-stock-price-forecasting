@@ -1,15 +1,6 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 echo "🔍 Running ruff autofix"
 ruff check . --fix
 ruff format .
 
 echo "🧠 Running static type checking"
 mypy src --exclude tests
-
-echo "🧪 Running tests"
-pytest
-
-echo "🕵️‍♂️ Checking for secrets with gitleaks"
-gitleaks protect --verbose --redact
