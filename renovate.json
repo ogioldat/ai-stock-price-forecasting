@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": ["dependencies"],
+  "dependencyDashboard": true,
+  "schedule": ["after 9am on monday"],
+  "rangeStrategy": "pin",
+  "semanticCommits": true,
+  "packageRules": [
+    {
+      "matchManagers": ["pip_requirements", "pip_setup", "pipenv", "poetry", "uv"],
+      "enabled": true
+    },
+    {
+      "matchManagers": ["npm"],
+      "enabled": true
+    },
+    {
+      "matchPackageNames": ["ruff", "mypy", "pytest", "uv"],
+      "groupName": "python tooling"
+    },
+    {
+      "matchPackageNames": ["@commitlint/cli", "@commitlint/config-conventional", "husky"],
+      "groupName": "commit tooling"
+    }
+  ]
+}

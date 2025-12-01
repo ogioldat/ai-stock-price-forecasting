@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "streetsidesoftware.code-spell-checker",
+    "ms-python.mypy-type-checker",
+    "ms-python.python",
+    "charliermarsh.ruff",
+    "ms-python.vscode-pylance"
+  ]
+}
