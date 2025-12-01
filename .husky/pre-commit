@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Linting code with ruff"
+ruff check . --fix
+ruff format .
+
+echo "Static type checking"
+mypy src --exclude tests

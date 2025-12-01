@@ -1,0 +1,6 @@
+{
+  "name": "python-modern",
+  "build": {
+    "dockerfile": "Dockerfile"
+  }
+}

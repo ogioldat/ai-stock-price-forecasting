@@ -1,0 +1,12 @@
+{
+  "name": "ai-trader",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.24.0",
+  "scripts": {
+    "prepare": "husky"
+  }
+}
