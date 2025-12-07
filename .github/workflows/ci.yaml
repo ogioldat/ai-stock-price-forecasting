@@ -35,7 +35,9 @@ jobs:
         run: uv tool run ruff check .
 
       - name: Mypy
-        run: mypy src --exclude tests
+        run: uv add mypy
+        run: uv run mypy src --exclude tests
 
       - name: Pytest
-        run: pytest -q
+        run: uv add pytest
+        run: uv run pytest -q
