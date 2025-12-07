@@ -32,7 +32,7 @@ jobs:
         run: uv sync --frozen
 
       - name: Ruff lint
-        run: ruff check .
+        run: uv tool run ruff check .
 
       - name: Mypy
         run: mypy src --exclude tests
