@@ -33,3 +33,4 @@ def sample_df_fixture() -> pd.DataFrame:
     df.set_index(['Date'], inplace=True)
 
     return df
+

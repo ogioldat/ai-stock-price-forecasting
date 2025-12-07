@@ -70,7 +70,7 @@ class StockDataService:
         if not force_refresh and start is not None and end is None:
             db_df = self._repo.load_history(symbol, interval)
             if db_df is not None:
-                self._memory_cache[cache_key] = db_df
+                self._history_cache[cache_key] = db_df
                 return db_df
 
         ## Fetch the data from API

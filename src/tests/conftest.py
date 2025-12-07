@@ -2,7 +2,6 @@
 # from fastapi import FastAPI
 
 # import pytest
-
 # from api.src.main import app as fastapi_app
 
 

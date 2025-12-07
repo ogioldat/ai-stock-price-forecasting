@@ -99,3 +99,19 @@ class SqliteStockRepository:
             )
 
             return df
+
+    def get_available_intervals(self, symbol: str) -> pd.DataFrame:
+        with self._get_connection() as conn:
+            df = pd.read_sql_query(
+                """
+                SELECT DISTINCT interval
+                FROM stock_prices
+                WHERE symbol = ?
+                ORDER BY interval;
+                """,
+                conn,
+                params=(symbol.strip().upper(),)
+            )
+
+            return df["interval"].tolist()
+
