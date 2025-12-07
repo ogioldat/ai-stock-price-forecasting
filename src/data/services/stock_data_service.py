@@ -11,12 +11,13 @@ from data.repositories.sqlite_stock_repository import SqliteStockRepository
 
 DateLike = Union[str, date, datetime]
 
+
 class StockDataService:
     """
-        Service responsible for fetching and optionally caching stock data.
+    Service responsible for fetching and optionally caching stock data.
     """
 
-    _TICKER_REGEX = re.compile(r'^[A-Z]+(?:-[A-Z]+)*$')
+    _TICKER_REGEX = re.compile(r"^[A-Z]+(?:-[A-Z]+)*$")
 
     def __init__(self, repository: SqliteStockRepository):
         self._ticker_cache: Dict[str, yf.Ticker] = {}
@@ -45,15 +46,15 @@ class StockDataService:
 
     @lru_cache
     def get_history(
-            self,
-            symbol: str,
-            interval: str = '1d',
-            start: Optional[DateLike] = None,
-            end: Optional[DateLike] = None,
-            force_refresh: bool = False
+        self,
+        symbol: str,
+        interval: str = "1d",
+        start: Optional[DateLike] = None,
+        end: Optional[DateLike] = None,
+        force_refresh: bool = False,
     ) -> pd.DataFrame:
         """
-            Fetch the historical data for a given symbol. Cached for repeated symbols.
+        Fetch the historical data for a given symbol. Cached for repeated symbols.
         """
 
         self._validate_symbol(symbol)
@@ -75,11 +76,7 @@ class StockDataService:
         ## Fetch the data from API
         try:
             ticker = self._get_ticker(symbol)
-            df = ticker.history(
-                interval=interval,
-                start=start,
-                end=end
-            )
+            df = ticker.history(interval=interval, start=start, end=end)
 
             if df.empty:
                 raise FetchError(f"No data returned for ticker '{symbol}'.")
@@ -91,11 +88,8 @@ class StockDataService:
 
             return df
 
-        except Exception as e:
-            raise FetchError(
-                f"Failed to fetch data for ticker '{symbol}'."
-            )
-
+        except Exception:
+            raise FetchError(f"Failed to fetch data for ticker '{symbol}'.")
 
     def clear_cache(self) -> None:
         self._ticker_cache.clear()

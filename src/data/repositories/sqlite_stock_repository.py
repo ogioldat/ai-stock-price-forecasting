@@ -1,11 +1,11 @@
 import sqlite3
-from pathlib import Path
 from typing import Optional
 
 import pandas as pd
 
+
 class SqliteStockRepository:
-    def __init__(self, db_path: str = 'stocks.db') -> None:
+    def __init__(self, db_path: str = "stocks.db") -> None:
         self.db_path = db_path
         self._ensure_db()
 
@@ -32,7 +32,6 @@ class SqliteStockRepository:
 
             conn.commit()
 
-
     def save_history(self, symbol: str, interval: str, df: pd.DataFrame) -> None:
         if df.empty:
             return
@@ -43,14 +42,15 @@ class SqliteStockRepository:
         rows = [
             (
                 symbol,
-                row['Date'].isoformat(),
+                row.iloc[0].isoformat(),
                 interval,
-                row['Open'],
-                row['High'],
-                row['Low'],
-                row['Close'],
-                row.get('Volume')
-            ) for _, row in df.iterrows()
+                row["Open"],
+                row["High"],
+                row["Low"],
+                row["Close"],
+                row.get("Volume"),
+            )
+            for _, row in df.iterrows()
         ]
 
         with self._get_connection() as conn:
@@ -62,7 +62,7 @@ class SqliteStockRepository:
                     ? ,? ,? ,? ,? ,? ,? ,?
                 );
                 """,
-                rows
+                rows,
             )
 
             conn.commit()
@@ -78,24 +78,24 @@ class SqliteStockRepository:
                 """,
                 conn,
                 params=(symbol, interval),
-                parse_dates=["timestamp"]
+                parse_dates=["timestamp"],
             )
 
             if df.empty:
                 return None
 
-            df.set_intex("timestamp", inplace=True)
+            df.set_index("timestamp", inplace=True)
             df.index.name = "Date"
 
             df.rename(
-                columns = {
+                columns={
                     "open": "Open",
                     "high": "High",
                     "low": "Low",
                     "close": "Close",
-                    "volume": "Volume"
+                    "volume": "Volume",
                 },
-                inplace=True
+                inplace=True,
             )
 
             return df
