@@ -15,7 +15,8 @@ dependencies = [
   "uvicorn[standard]",
   "starlette",
   "yfinance",
-  "streamlit"
+  "streamlit",
+  "plotly"
 ]
 
 [dependency-groups]
