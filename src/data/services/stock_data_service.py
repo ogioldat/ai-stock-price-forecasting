@@ -6,7 +6,7 @@ from typing import Optional, Union, Tuple, Dict
 import pandas as pd
 import re
 
-from data.services.exceptions import InvalidTickerError, FetchError
+from data.exceptions import InvalidTickerError, FetchError
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
 
 DateLike = Union[str, date, datetime]
