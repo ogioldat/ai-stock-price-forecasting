@@ -77,15 +77,15 @@ def run() -> None:
         st.error(str(e))
         return
 
-    intervals = repo.get_available_intervals(ticker)
+    # intervals = repo.get_available_intervals(ticker)
 
-    if not intervals:
-        st.warning(f"No data found in database for ticker: {ticker}")
-        return
+    # if not intervals:
+    #     st.warning(f"No data found in database for ticker: {ticker}")
+    #     return
 
-    if not ticker:
-        st.error("Ticker cannot be empty.")
-        return
+    # if not ticker:
+    #     st.error("Ticker cannot be empty.")
+    #     return
 
     intervals = repo.get_available_intervals(ticker)
 
