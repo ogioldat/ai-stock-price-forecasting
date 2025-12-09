@@ -44,11 +44,62 @@ class StockDataService:
 
         return self._ticker_cache[symbol]
 
+    def _save_history(self, symbol: str, interval: str, history: pd.DataFrame) -> None:
+        if history.empty:
+            return
+
+        self._repo.save_history(symbol, interval, history)
+
+    # TODO: Move interval mapping to a separate utility module if needed elsewhere
+    @staticmethod
+    def _map_interval(interval: str) -> str:
+        interval = interval.strip().lower()
+
+        interval_mapping = {
+            'day': '1d',
+            'week': '1wk',
+            'month': '1m'
+        }
+
+        return interval_mapping.get(interval, '1d')
+
+    def _check_for_data_in_cache(self, cache_key: tuple) -> bool:
+        return cache_key in self._history_cache
+
+    def _get_data_from_cache(self, cache_key: tuple) -> pd.DataFrame:
+         return self._history_cache[cache_key]
+
+    def _get_data_from_db(self, symbol: str, interval: str, cache_key: tuple) -> pd.DataFrame | None:
+        history = self._repo.load_history(symbol, interval)
+
+        if history is not None:
+            self._history_cache[cache_key] = history
+
+        return history
+
+    def _get_data_from_api(self, symbol: str, interval: str, start: Optional[DateLike], end: Optional[DateLike], cache_key: tuple) -> pd.DataFrame:
+        try:
+            ticker = self._get_ticker(symbol)
+            history = ticker.history(interval=interval, start=start, end=end)
+
+            if history.empty:
+                raise FetchError(f"No data returned for ticker '{symbol}'.")
+
+            if start is None and end is None:
+                self._repo.save_history(symbol, interval, history)
+
+            self._history_cache[cache_key] = history
+
+            return history
+
+        except Exception:
+            raise FetchError(f"Failed to fetch data for ticker '{symbol}'.")
+
     @lru_cache
     def get_history(
         self,
         symbol: str,
-        interval: str = "1d",
+        interval: str = 'Day',
         start: Optional[DateLike] = None,
         end: Optional[DateLike] = None,
         force_refresh: bool = False,
@@ -60,36 +111,28 @@ class StockDataService:
         self._validate_symbol(symbol)
         symbol = symbol.strip().upper()
 
+        interval = self._map_interval(interval)
+
         cache_key = (symbol, interval, start, end)
 
-        ## Try Cached
-        if not force_refresh and cache_key in self._history_cache:
-            return self._history_cache[cache_key]
+        if not force_refresh:
+            if self._check_for_data_in_cache(cache_key):
+                return self._get_data_from_cache(cache_key)
 
-        ## Try Databse
-        if not force_refresh and start is not None and end is None:
-            db_df = self._repo.load_history(symbol, interval)
-            if db_df is not None:
-                self._history_cache[cache_key] = db_df
-                return db_df
+            data = self._get_data_from_db(symbol, interval, cache_key)
+            if data is not None:
+                return data
 
-        ## Fetch the data from API
-        try:
-            ticker = self._get_ticker(symbol)
-            df = ticker.history(interval=interval, start=start, end=end)
+        data = self._get_data_from_api(symbol, interval, start, end, cache_key)
+        self._save_history(symbol, interval, data)
 
-            if df.empty:
-                raise FetchError(f"No data returned for ticker '{symbol}'.")
+        return data
 
-            if start is None and end is None:
-                self._repo.save_history(symbol, interval, df)
-
-            self._history_cache[cache_key] = df
-
-            return df
-
-        except Exception:
-            raise FetchError(f"Failed to fetch data for ticker '{symbol}'.")
+    def get_list_of_stocks(self) -> list[str]:
+        """
+        Uses the repository to get a list of all stock tickers available in the database.
+        """
+        return self._repo.get_all_tickers()
 
     def clear_cache(self) -> None:
         self._ticker_cache.clear()

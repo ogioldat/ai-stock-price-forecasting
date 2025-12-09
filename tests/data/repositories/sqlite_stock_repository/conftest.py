@@ -11,7 +11,7 @@ def db_path_fixture(tmp_path: Path) -> str:
 
 
 @pytest.fixture(name="repository")
-def sqlite_repo_fixtue(db_path: str) -> SqliteStockRepository:
+def sqlite_repo_fixture(db_path: str) -> SqliteStockRepository:
     return SqliteStockRepository(db_path)
 
 

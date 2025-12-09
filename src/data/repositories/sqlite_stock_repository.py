@@ -1,3 +1,4 @@
+import logging
 import sqlite3
 from typing import Optional
 
@@ -5,6 +6,10 @@ import pandas as pd
 
 
 class SqliteStockRepository:
+    """
+        A class to represent the sqlite3 repository.
+    """
+
     def __init__(self, db_path: str = "stocks.db") -> None:
         self.db_path = db_path
         self._ensure_db()
@@ -32,12 +37,12 @@ class SqliteStockRepository:
 
             conn.commit()
 
-    def save_history(self, symbol: str, interval: str, df: pd.DataFrame) -> None:
-        if df.empty:
+    def save_history(self, symbol: str, interval: str, history_data: pd.DataFrame) -> None:
+        if history_data.empty:
             return
 
-        df = df.copy()
-        df.reset_index(inplace=True)
+        history_data.copy()
+        history_data.reset_index(inplace=True)
 
         rows = [
             (
@@ -50,7 +55,7 @@ class SqliteStockRepository:
                 row["Close"],
                 row.get("Volume"),
             )
-            for _, row in df.iterrows()
+            for _, row in history_data.iterrows()
         ]
 
         with self._get_connection() as conn:
@@ -67,7 +72,7 @@ class SqliteStockRepository:
 
             conn.commit()
 
-    def load_history(self, symbol: str, interval: str) -> Optional[pd.DataFrame]:
+    def load_history(self, symbol: str, interval: str) -> pd.DataFrame | None:
         with self._get_connection() as conn:
             df = pd.read_sql_query(
                 """
@@ -98,7 +103,7 @@ class SqliteStockRepository:
                 inplace=True,
             )
 
-            return df
+            return df if not df.empty else None
 
     def get_available_intervals(self, symbol: str) -> pd.DataFrame:
         with self._get_connection() as conn:
@@ -114,4 +119,18 @@ class SqliteStockRepository:
             )
 
             return df["interval"].tolist()
-
+    def get_all_tickers(self) -> list[str]:
+        """
+        Get a list of all stock tickers available in the database.
+        """
+        with self._get_connection() as conn:
+            df = pd.read_sql_query(
+                """
+                SELECT DISTINCT symbol
+                FROM stock_prices
+                ORDER BY symbol;
+                """,
+                conn,
+            )
+            logging.log(msg=f"{df["symbol"].tolist()}", level=10)
+            return df["symbol"].tolist()

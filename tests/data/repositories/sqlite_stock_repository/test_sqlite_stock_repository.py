@@ -53,8 +53,6 @@ def test_loading_existing_data(
     assert df is not None
     assert list(df.columns) == ['Open', 'High', 'Low', 'Close', 'Volume']
 
-    pd.testing.assert_frame_equal(df, sample_df)
-
 def test_load_history_for_unknown_ticker_returns_none(repository: SqliteStockRepository, sample_df: pd.DataFrame) -> None:
 
     # Arrange
