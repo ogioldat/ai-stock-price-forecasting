@@ -8,7 +8,7 @@ authors = [
   {name = "Tomek", email = "tomek@student.agh.edu.pl"},
 ]
 readme = "README.md"
-requires-python = "==3.13.*"
+requires-python = "==3.13.11"
 dependencies = [
   "fastapi",
   "pydantic",
@@ -31,7 +31,7 @@ testpaths = "api/tests"
 pythonpath = "api"
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.coverage.report]
