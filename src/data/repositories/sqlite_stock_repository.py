@@ -47,7 +47,11 @@ class SqliteStockRepository:
         rows = [
             (
                 symbol,
-                row.iloc[0].isoformat(),
+                (
+                    row.iloc[0].isoformat()
+                    if hasattr(row.iloc[0], "isoformat")
+                    else str(row.iloc[0])
+                ),
                 interval,
                 row["Open"],
                 row["High"],

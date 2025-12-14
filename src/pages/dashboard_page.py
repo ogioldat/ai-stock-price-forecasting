@@ -6,6 +6,7 @@ with st.sidebar:
     st.page_link("pages/dashboard_page.py", label="Dashboard", icon="🏠")
     st.page_link("pages/search_page.py", label="Stocks Search", icon="🔎")
     st.page_link("pages/stocks_page.py", label="Stocks List", icon="📃")
+    st.page_link("pages/forecast_page.py", label="Forecast", icon="📈")
 
 with st.container():
     st.title("Stock Price Viewer")

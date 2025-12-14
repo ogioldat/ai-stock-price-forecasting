@@ -16,7 +16,8 @@ dependencies = [
   "starlette",
   "yfinance",
   "streamlit",
-  "plotly"
+  "plotly",
+  "statsmodels"
 ]
 
 [dependency-groups]
