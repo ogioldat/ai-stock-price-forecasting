@@ -94,7 +94,6 @@ if submitted:
         if history.empty:
             st.warning("No data available for this selection.")
         else:
-            # Run multiple models: naive, moving average, ARIMA
             results = {}
 
             naive_result = run_baseline_forecast(
@@ -122,7 +121,6 @@ if submitted:
             except Exception as arima_err:
                 st.warning(f"ARIMA model failed: {arima_err}")
 
-            # Metrics table
             metrics_rows = []
             for name, res in results.items():
                 metrics_rows.append(

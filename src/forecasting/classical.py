@@ -1,5 +1,3 @@
-"""Classical time-series forecasting models (e.g. ARIMA)."""
-
 from __future__ import annotations
 
 from typing import Tuple
@@ -17,14 +15,6 @@ def run_arima_forecast(
 ) -> ForecastResult:
     """Fit an ARIMA model on the Close prices and forecast `horizon` steps ahead.
 
-    Parameters
-    ----------
-    history: pd.DataFrame
-        Historical OHLCV data with a DatetimeIndex and a `Close` column.
-    horizon: int
-        Number of future steps to forecast.
-    order: tuple[int, int, int]
-        ARIMA(p, d, q) order.
     """
 
     if history.empty:
@@ -35,12 +25,10 @@ def run_arima_forecast(
     model = ARIMA(closes, order=order)
     fitted = model.fit()
 
-    # Out-of-sample forecast for the next `horizon` steps
     forecast_values = fitted.forecast(steps=horizon)
     forecast_index = _build_horizon_index(history, horizon)
     forecast_series = pd.Series(forecast_values.values, index=forecast_index, name="Close")
 
-    # Simple evaluation: use one-step-ahead predictions over the last `horizon` points where possible
     mae = None
     if len(closes) > horizon:
         start = len(closes) - horizon

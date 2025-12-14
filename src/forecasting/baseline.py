@@ -1,9 +1,3 @@
-"""Simple baseline forecasting models built on top of historical OHLCV data.
-
-These models operate directly on a pandas DataFrame in the same format
-as returned by StockDataService.get_history (Date index, OHLCV columns).
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -60,7 +54,6 @@ def naive_forecast(history: pd.DataFrame, horizon: int) -> ForecastResult:
     index = _build_horizon_index(history, horizon)
     forecast = pd.Series(last_close, index=index, name="Close")
 
-    # Evaluate on the last `horizon` points if available
     y_true = history["Close"].iloc[-horizon:] if len(history) >= horizon else history["Close"]
     y_pred = pd.Series(last_close, index=y_true.index, name="Close")
     mae = _compute_mae(y_true, y_pred)
@@ -69,11 +62,7 @@ def naive_forecast(history: pd.DataFrame, horizon: int) -> ForecastResult:
 
 
 def moving_average_forecast(history: pd.DataFrame, horizon: int, window: int = 5) -> ForecastResult:
-    """Moving-average forecast based on the last `window` closes.
-
-    For simplicity we forecast a flat line equal to the last available
-    rolling mean over the specified window.
-    """
+    """Moving-average forecast based on the last ``window`` closes."""
 
     if history.empty:
         raise ValueError("History is empty; cannot compute forecast.")
@@ -89,7 +78,6 @@ def moving_average_forecast(history: pd.DataFrame, horizon: int, window: int = 5
     index = _build_horizon_index(history, horizon)
     forecast = pd.Series(last_ma, index=index, name="Close")
 
-    # Evaluate using rolling mean as prediction for last `horizon` points
     eval_window = max(window, horizon)
     y_true = closes.iloc[-horizon:] if len(closes) >= horizon else closes
 
@@ -109,16 +97,6 @@ def run_baseline_forecast(
 ) -> ForecastResult:
     """Convenience wrapper to run one of the baseline models.
 
-    Parameters
-    ----------
-    history: pd.DataFrame
-        Historical OHLCV data with a DatetimeIndex and a `Close` column.
-    horizon: int
-        Number of future steps to forecast.
-    model_type: {"naive", "moving_average"}
-        Which baseline to use.
-    window: int
-        Window size for the moving-average baseline.
     """
 
     if model_type == "naive":
