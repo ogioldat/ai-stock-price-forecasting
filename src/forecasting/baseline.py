@@ -54,14 +54,22 @@ def naive_forecast(history: pd.DataFrame, horizon: int) -> ForecastResult:
     index = _build_horizon_index(history, horizon)
     forecast = pd.Series(last_close, index=index, name="Close")
 
-    y_true = history["Close"].iloc[-horizon:] if len(history) >= horizon else history["Close"]
+    y_true = (
+        history["Close"].iloc[-horizon:]
+        if len(history) >= horizon
+        else history["Close"]
+    )
     y_pred = pd.Series(last_close, index=y_true.index, name="Close")
     mae = _compute_mae(y_true, y_pred)
 
-    return ForecastResult(history=history, forecast=forecast, horizon=horizon, model_type="naive", mae=mae)
+    return ForecastResult(
+        history=history, forecast=forecast, horizon=horizon, model_type="naive", mae=mae
+    )
 
 
-def moving_average_forecast(history: pd.DataFrame, horizon: int, window: int = 5) -> ForecastResult:
+def moving_average_forecast(
+    history: pd.DataFrame, horizon: int, window: int = 5
+) -> ForecastResult:
     """Moving-average forecast based on the last ``window`` closes."""
 
     if history.empty:
@@ -78,15 +86,20 @@ def moving_average_forecast(history: pd.DataFrame, horizon: int, window: int = 5
     index = _build_horizon_index(history, horizon)
     forecast = pd.Series(last_ma, index=index, name="Close")
 
-    eval_window = max(window, horizon)
     y_true = closes.iloc[-horizon:] if len(closes) >= horizon else closes
 
     rolling_ma = closes.rolling(window=window, min_periods=1).mean()
-    y_pred = rolling_ma.iloc[-len(y_true):]
+    y_pred = rolling_ma.iloc[-len(y_true) :]
 
     mae = _compute_mae(y_true, y_pred)
 
-    return ForecastResult(history=history, forecast=forecast, horizon=horizon, model_type="moving_average", mae=mae)
+    return ForecastResult(
+        history=history,
+        forecast=forecast,
+        horizon=horizon,
+        model_type="moving_average",
+        mae=mae,
+    )
 
 
 def run_baseline_forecast(
@@ -95,9 +108,7 @@ def run_baseline_forecast(
     model_type: ForecastType = "naive",
     window: int = 5,
 ) -> ForecastResult:
-    """Convenience wrapper to run one of the baseline models.
-
-    """
+    """Convenience wrapper to run one of the baseline models."""
 
     if model_type == "naive":
         return naive_forecast(history, horizon)

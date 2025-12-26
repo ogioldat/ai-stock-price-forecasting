@@ -55,21 +55,19 @@ class StockDataService:
     def _map_interval(interval: str) -> str:
         interval = interval.strip().lower()
 
-        interval_mapping = {
-            'day': '1d',
-            'week': '1wk',
-            'month': '1m'
-        }
+        interval_mapping = {"day": "1d", "week": "1wk", "month": "1m"}
 
-        return interval_mapping.get(interval, '1d')
+        return interval_mapping.get(interval, "1d")
 
     def _check_for_data_in_cache(self, cache_key: tuple) -> bool:
         return cache_key in self._history_cache
 
     def _get_data_from_cache(self, cache_key: tuple) -> pd.DataFrame:
-         return self._history_cache[cache_key]
+        return self._history_cache[cache_key]
 
-    def _get_data_from_db(self, symbol: str, interval: str, cache_key: tuple) -> pd.DataFrame | None:
+    def _get_data_from_db(
+        self, symbol: str, interval: str, cache_key: tuple
+    ) -> pd.DataFrame | None:
         history = self._repo.load_history(symbol, interval)
 
         if history is not None:
@@ -77,7 +75,14 @@ class StockDataService:
 
         return history
 
-    def _get_data_from_api(self, symbol: str, interval: str, start: Optional[DateLike], end: Optional[DateLike], cache_key: tuple) -> pd.DataFrame:
+    def _get_data_from_api(
+        self,
+        symbol: str,
+        interval: str,
+        start: Optional[DateLike],
+        end: Optional[DateLike],
+        cache_key: tuple,
+    ) -> pd.DataFrame:
         try:
             ticker = self._get_ticker(symbol)
             history = ticker.history(interval=interval, start=start, end=end)
@@ -99,7 +104,7 @@ class StockDataService:
     def get_history(
         self,
         symbol: str,
-        interval: str = 'Day',
+        interval: str = "Day",
         start: Optional[DateLike] = None,
         end: Optional[DateLike] = None,
         force_refresh: bool = False,

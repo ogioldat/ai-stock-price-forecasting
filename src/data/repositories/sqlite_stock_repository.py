@@ -1,13 +1,12 @@
 import logging
 import sqlite3
-from typing import Optional
 
 import pandas as pd
 
 
 class SqliteStockRepository:
     """
-        A class to represent the sqlite3 repository.
+    A class to represent the sqlite3 repository.
     """
 
     def __init__(self, db_path: str = "stocks.db") -> None:
@@ -37,7 +36,9 @@ class SqliteStockRepository:
 
             conn.commit()
 
-    def save_history(self, symbol: str, interval: str, history_data: pd.DataFrame) -> None:
+    def save_history(
+        self, symbol: str, interval: str, history_data: pd.DataFrame
+    ) -> None:
         if history_data.empty:
             return
 
@@ -119,10 +120,11 @@ class SqliteStockRepository:
                 ORDER BY interval;
                 """,
                 conn,
-                params=(symbol.strip().upper(),)
+                params=(symbol.strip().upper(),),
             )
 
             return df["interval"].tolist()
+
     def get_all_tickers(self) -> list[str]:
         """
         Get a list of all stock tickers available in the database.
@@ -136,5 +138,5 @@ class SqliteStockRepository:
                 """,
                 conn,
             )
-            logging.log(msg=f"{df["symbol"].tolist()}", level=10)
-            return df["symbol"].tolist()
+            logging.log(msg=f"{df['symbol'].tolist()}", level=10)
+            return [str(symbol) for symbol in df["symbol"].tolist()]

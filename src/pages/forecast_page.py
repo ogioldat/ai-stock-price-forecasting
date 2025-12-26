@@ -1,3 +1,5 @@
+from typing import Mapping, cast
+
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -5,7 +7,7 @@ import pandas as pd
 
 from data.services.stock_data_service import StockDataService
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
-from forecasting.baseline import run_baseline_forecast
+from forecasting.baseline import ForecastResult, run_baseline_forecast
 from forecasting.classical import run_arima_forecast
 
 
@@ -18,7 +20,12 @@ with st.sidebar:
     st.page_link("pages/forecast_page.py", label="Forecast", icon="📈")
 
 
-def plot_forecasts(history: pd.DataFrame, results: dict[str, object], symbol: str, interval: str):
+def plot_forecasts(
+    history: pd.DataFrame,
+    results: Mapping[str, ForecastResult],
+    symbol: str,
+    interval: str,
+) -> None:
     df_hist = history.copy()
     fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
 
@@ -64,9 +71,18 @@ service = StockDataService(repo)
 st.header("Forecast comparison")
 
 with st.form("forecast_form"):
-    ticker = st.text_input("Ticker symbol", value="AAPL")
-    interval = st.selectbox("Interval", ["Day", "Week", "Month"], index=0)
-    horizon = st.number_input("Forecast horizon (steps)", min_value=1, max_value=60, value=5, step=1)
+    ticker = cast(
+        str,
+        st.selectbox(
+            label="Ticker symbol",
+            options=service.get_list_of_stocks(),
+            index=0,
+        ),
+    )
+    interval = cast(str, st.selectbox("Interval", ["Day", "Week", "Month"], index=0))
+    horizon = st.number_input(
+        "Forecast horizon (steps)", min_value=1, max_value=60, value=5, step=1
+    )
 
     ma_window = st.number_input(
         "Moving average window (for MA model)",
@@ -90,11 +106,13 @@ with st.form("forecast_form"):
 
 if submitted:
     try:
-        history = service.get_history(symbol=ticker, interval=interval, force_refresh=False)
+        history = service.get_history(
+            symbol=ticker, interval=interval, force_refresh=False
+        )
         if history.empty:
             st.warning("No data available for this selection.")
         else:
-            results = {}
+            results: dict[str, ForecastResult] = {}
 
             naive_result = run_baseline_forecast(
                 history=history,
@@ -127,7 +145,9 @@ if submitted:
                     {
                         "Model": name,
                         "Horizon": res.horizon,
-                        "MAE (last horizon)": None if res.mae is None else round(res.mae, 4),
+                        "MAE (last horizon)": None
+                        if res.mae is None
+                        else round(res.mae, 4),
                     }
                 )
 

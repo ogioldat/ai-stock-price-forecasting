@@ -36,10 +36,10 @@ def test_database_persistance(
 
     assert count == len(sample_df)
 
-def test_loading_existing_data(
-        repository: SqliteStockRepository, sample_df: pd.DataFrame
-) -> None:
 
+def test_loading_existing_data(
+    repository: SqliteStockRepository, sample_df: pd.DataFrame
+) -> None:
     # Arrange
     ticker_symbol = "AAPL"
     interval = "1d"
@@ -51,17 +51,18 @@ def test_loading_existing_data(
 
     # Assert
     assert df is not None
-    assert list(df.columns) == ['Open', 'High', 'Low', 'Close', 'Volume']
+    assert list(df.columns) == ["Open", "High", "Low", "Close", "Volume"]
 
-def test_load_history_for_unknown_ticker_returns_none(repository: SqliteStockRepository, sample_df: pd.DataFrame) -> None:
 
+def test_load_history_for_unknown_ticker_returns_none(
+    repository: SqliteStockRepository, sample_df: pd.DataFrame
+) -> None:
     # Arrange
-    ticker_symbol_insert = 'AAPL'
-    ticker_symbol_test = 'MSFT'
+    ticker_symbol_insert = "AAPL"
+    ticker_symbol_test = "MSFT"
 
-    interval_insert = '1d'
-    interval_test = '1m'
-
+    interval_insert = "1d"
+    interval_test = "1m"
 
     repository.save_history(ticker_symbol_insert, interval_insert, sample_df)
 

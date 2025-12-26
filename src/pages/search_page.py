@@ -1,3 +1,5 @@
+from typing import cast
+
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -13,24 +15,32 @@ with st.sidebar:
     st.page_link("pages/search_page.py", label="Stocks Search", icon="🔎")
     st.page_link("pages/stocks_page.py", label="Stocks List", icon="📃")
 
-def plot_candlestick(df: pd.DataFrame, symbol: str, interval: str):
+
+def plot_candlestick(df: pd.DataFrame, symbol: str, interval: str) -> None:
     fig = make_subplots(
-        rows=2, cols=1, shared_xaxes=True, vertical_spacing=0.05,
-        row_heights=[0.7, 0.3], subplot_titles=(f"{symbol} Price ({interval})", "Volume")
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.05,
+        row_heights=[0.7, 0.3],
+        subplot_titles=(f"{symbol} Price ({interval})", "Volume"),
     )
     fig.add_trace(
         go.Candlestick(
-            x=df.index, open=df["Open"], high=df["High"],
-            low=df["Low"], close=df["Close"], name="Price"
+            x=df.index,
+            open=df["Open"],
+            high=df["High"],
+            low=df["Low"],
+            close=df["Close"],
+            name="Price",
         ),
-        row=1, col=1
+        row=1,
+        col=1,
     )
-    fig.add_trace(
-        go.Bar(x=df.index, y=df["Volume"], name="Volume"),
-        row=2, col=1
-    )
+    fig.add_trace(go.Bar(x=df.index, y=df["Volume"], name="Volume"), row=2, col=1)
     fig.update_layout(height=750, xaxis_rangeslider_visible=False, showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
+
 
 repo = SqliteStockRepository("stocks.db")
 service = StockDataService(repo)
@@ -39,7 +49,7 @@ st.header("Stock Search")
 
 with st.form("search_form"):
     ticker = st.text_input("Ticker symbol", value="AAPL")
-    interval = st.selectbox("Interval", ["Day", "Week", "Month"])
+    interval = cast(str, st.selectbox("Interval", ["Day", "Week", "Month"]))
     col1, col2 = st.columns(2)
     with col1:
         start = st.date_input("Start date")
@@ -49,7 +59,9 @@ with st.form("search_form"):
 
 if submitted:
     try:
-        df = service.get_history(symbol=ticker, interval=interval, start=start, end=end, force_refresh=False)
+        df = service.get_history(
+            symbol=ticker, interval=interval, start=start, end=end, force_refresh=False
+        )
         if df.empty:
             st.warning("No data available for this selection.")
         else:

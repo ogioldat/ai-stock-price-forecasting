@@ -13,9 +13,7 @@ def run_arima_forecast(
     horizon: int = 5,
     order: Tuple[int, int, int] = (1, 1, 0),
 ) -> ForecastResult:
-    """Fit an ARIMA model on the Close prices and forecast `horizon` steps ahead.
-
-    """
+    """Fit an ARIMA model on the Close prices and forecast `horizon` steps ahead."""
 
     if history.empty:
         raise ValueError("History is empty; cannot compute ARIMA forecast.")
@@ -27,7 +25,9 @@ def run_arima_forecast(
 
     forecast_values = fitted.forecast(steps=horizon)
     forecast_index = _build_horizon_index(history, horizon)
-    forecast_series = pd.Series(forecast_values.values, index=forecast_index, name="Close")
+    forecast_series = pd.Series(
+        forecast_values.values, index=forecast_index, name="Close"
+    )
 
     mae = None
     if len(closes) > horizon:
