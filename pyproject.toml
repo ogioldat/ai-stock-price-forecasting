@@ -13,7 +13,10 @@ dependencies = [
   "fastapi",
   "pydantic",
   "uvicorn[standard]",
-  "starlette"
+  "starlette",
+  "yfinance",
+  "streamlit",
+  "plotly"
 ]
 
 [dependency-groups]
@@ -22,7 +25,8 @@ dev = ["fastapi[standard]", "pytest"]
 [tool.uv.dependency-groups.dev]
 dependencies = [
   "pytest",
-  "httpx"
+  "mypy",
+  "ruff"
 ]
 
 [tool.pytest.ini_options]
