@@ -8,16 +8,13 @@ import pandas as pd
 from data.services.stock_data_service import StockDataService
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
 from forecasting.baseline import ForecastResult, run_baseline_forecast
-from forecasting.classical import run_arima_forecast
 
 
 st.set_page_config(page_title="Forecast", layout="wide")
 
 with st.sidebar:
     st.page_link("pages/dashboard_page.py", label="Dashboard", icon="🏠")
-    st.page_link("pages/search_page.py", label="Stocks Search", icon="🔎")
-    st.page_link("pages/stocks_page.py", label="Stocks List", icon="📃")
-    st.page_link("pages/forecast_page.py", label="Forecast", icon="📈")
+    st.page_link("pages/forecast_page.py", label="Trading Strategies", icon="📈")
 
 
 def plot_forecasts(
@@ -92,14 +89,14 @@ with st.form("forecast_form"):
         step=1,
     )
 
-    st.markdown("**ARIMA settings (p, d, q):**")
-    col_p, col_d, col_q = st.columns(3)
-    with col_p:
-        ar_p = st.number_input("p", min_value=0, max_value=5, value=1, step=1)
-    with col_d:
-        ar_d = st.number_input("d", min_value=0, max_value=2, value=1, step=1)
-    with col_q:
-        ar_q = st.number_input("q", min_value=0, max_value=5, value=0, step=1)
+    # st.markdown("**ARIMA settings (p, d, q):**")
+    # col_p, col_d, col_q = st.columns(3)
+    # with col_p:
+    #     ar_p = st.number_input("p", min_value=0, max_value=5, value=1, step=1)
+    # with col_d:
+    #     ar_d = st.number_input("d", min_value=0, max_value=2, value=1, step=1)
+    # with col_q:
+    #     ar_q = st.number_input("q", min_value=0, max_value=5, value=0, step=1)
 
     submitted = st.form_submit_button("Run forecast")
 
@@ -129,27 +126,27 @@ if submitted:
             )
             results["Moving average"] = ma_result
 
-            try:
-                arima_result = run_arima_forecast(
-                    history=history,
-                    horizon=int(horizon),
-                    order=(int(ar_p), int(ar_d), int(ar_q)),
-                )
-                results["ARIMA"] = arima_result
-            except Exception as arima_err:
-                st.warning(f"ARIMA model failed: {arima_err}")
+            # try:
+            #     arima_result = run_arima_forecast(
+            #         history=history,
+            #         horizon=int(horizon),
+            #         order=(int(ar_p), int(ar_d), int(ar_q)),
+            #     )
+            #     results["ARIMA"] = arima_result
+            # except Exception as arima_err:
+            #     st.warning(f"ARIMA model failed: {arima_err}")
 
-            metrics_rows = []
-            for name, res in results.items():
-                metrics_rows.append(
-                    {
-                        "Model": name,
-                        "Horizon": res.horizon,
-                        "MAE (last horizon)": None
-                        if res.mae is None
-                        else round(res.mae, 4),
-                    }
-                )
+            metrics_rows: list[dict[str, float | int | str | None]] = []
+            # for name, res in results.items():
+            #     metrics_rows.append(
+            #         {
+            #             "Model": name,
+            #             "Horizon": res.horizon,
+            #             "MAE (last horizon)": None
+            #             if res.mae is None
+            #             else round(res.mae, 4),
+            #         }
+            #     )
 
             metrics_df = pd.DataFrame(metrics_rows)
 

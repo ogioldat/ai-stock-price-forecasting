@@ -11,7 +11,7 @@ from data.exceptions import FetchError, InvalidTickerError
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
 from data.services.stock_data_service import StockDataService
 
-DEFAULT_DB_PATH = Path("./src/stocks.db")
+DEFAULT_DB_PATH = Path("stocks.db")
 
 
 def _parse_date(value: Optional[str]) -> Optional[date]:
