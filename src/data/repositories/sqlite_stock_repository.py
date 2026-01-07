@@ -94,6 +94,7 @@ class SqliteStockRepository:
             if df.empty:
                 return None
 
+            df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
             df.set_index("timestamp", inplace=True)
             df.index.name = "Date"
 
