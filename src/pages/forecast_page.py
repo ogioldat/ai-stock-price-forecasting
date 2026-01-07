@@ -5,8 +5,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-from data.services.stock_data_service import StockDataService
+from data.models import Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
+from data.services.stock_data_service import StockDataService
 from forecasting.baseline import ForecastResult, run_baseline_forecast
 from forecasting.classical import run_arima_forecast
 
@@ -24,7 +25,7 @@ def plot_forecasts(
     history: pd.DataFrame,
     results: Mapping[str, ForecastResult],
     symbol: str,
-    interval: str,
+    interval_label: str,
 ) -> None:
     df_hist = history.copy()
     fig = make_subplots(rows=1, cols=1, shared_xaxes=True)
@@ -54,7 +55,7 @@ def plot_forecasts(
         )
 
     fig.update_layout(
-        title=f"Forecast comparison for {symbol} ({interval})",
+        title=f"Forecast comparison for {symbol} ({interval_label})",
         xaxis_title="Date",
         yaxis_title="Price",
         showlegend=True,
@@ -79,7 +80,15 @@ with st.form("forecast_form"):
             index=0,
         ),
     )
-    interval = cast(str, st.selectbox("Interval", ["Day", "Week", "Month"], index=0))
+    interval = cast(
+        Interval,
+        st.selectbox(
+            "Interval",
+            options=list(Interval),
+            index=0,
+            format_func=lambda option: option.display_name,
+        ),
+    )
     horizon = st.number_input(
         "Forecast horizon (steps)", min_value=1, max_value=60, value=5, step=1
     )
@@ -156,7 +165,7 @@ if submitted:
             st.subheader("Model comparison")
             st.dataframe(metrics_df, hide_index=True)
 
-            plot_forecasts(history, results, ticker, interval)
+            plot_forecasts(history, results, ticker, interval.display_name)
 
             with st.expander("Show raw data"):
                 st.subheader("Historical data")

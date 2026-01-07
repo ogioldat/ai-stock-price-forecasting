@@ -42,6 +42,6 @@ def run_arima_forecast(
         history=history,
         forecast=forecast_series,
         horizon=horizon,
-        model_type="naive",  # model_type is informational; value not used for logic here
+        model_type="naive",
         mae=mae,
     )

@@ -8,10 +8,12 @@ from typing import Optional, cast
 import pandas as pd
 
 from data.exceptions import FetchError, InvalidTickerError
+from data.models import Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
 from data.services.stock_data_service import StockDataService
 
 DEFAULT_DB_PATH = Path("./src/stocks.db")
+DEFAULT_INTERVAL = Interval.DAY
 
 
 def _parse_date(value: Optional[str]) -> Optional[date]:
@@ -33,8 +35,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("symbol", help="Ticker symbol, e.g. AAPL or MSFT.")
     parser.add_argument(
         "--interval",
-        choices=["day", "week", "month"],
-        default="day",
+        choices=[interval.display_name.lower() for interval in Interval],
+        default=DEFAULT_INTERVAL.display_name.lower(),
         help="Sampling interval for the history (default: day).",
     )
     parser.add_argument(
@@ -92,9 +94,10 @@ def main() -> int:
     service = _build_service(args.database)
 
     try:
+        interval = Interval.from_user_input(args.interval)
         df = service.get_history(
             symbol=args.symbol,
-            interval=args.interval,
+            interval=interval,
             start=args.start,
             end=args.end,
             force_refresh=args.force_refresh,
@@ -109,7 +112,7 @@ def main() -> int:
 
     print(
         f"Fetched {len(df)} rows for {args.symbol.upper()} "
-        f"(interval: {args.interval.title()})."
+        f"(interval: {interval.display_name})."
     )
     if args.start or args.end:
         print(

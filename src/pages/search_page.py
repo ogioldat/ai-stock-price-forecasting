@@ -5,8 +5,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-from data.services.stock_data_service import StockDataService
+from data.models import Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
+from data.services.stock_data_service import StockDataService
 
 st.set_page_config(page_title="Stock Search", layout="wide")
 
@@ -16,14 +17,14 @@ with st.sidebar:
     st.page_link("pages/stocks_page.py", label="Stocks List", icon="📃")
 
 
-def plot_candlestick(df: pd.DataFrame, symbol: str, interval: str) -> None:
+def plot_candlestick(df: pd.DataFrame, symbol: str, interval_label: str) -> None:
     fig = make_subplots(
         rows=2,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.05,
         row_heights=[0.7, 0.3],
-        subplot_titles=(f"{symbol} Price ({interval})", "Volume"),
+        subplot_titles=(f"{symbol} Price ({interval_label})", "Volume"),
     )
     fig.add_trace(
         go.Candlestick(
@@ -49,7 +50,14 @@ st.header("Stock Search")
 
 with st.form("search_form"):
     ticker = st.text_input("Ticker symbol", value="AAPL")
-    interval = cast(str, st.selectbox("Interval", ["Day", "Week", "Month"]))
+    interval = cast(
+        Interval,
+        st.selectbox(
+            "Interval",
+            options=list(Interval),
+            format_func=lambda option: option.display_name,
+        ),
+    )
     col1, col2 = st.columns(2)
     with col1:
         start = st.date_input("Start date")
@@ -67,7 +75,7 @@ if submitted:
         else:
             tab1, tab2 = st.tabs(["Chart", "Data"])
             with tab1:
-                plot_candlestick(df, ticker, interval)
+                plot_candlestick(df, ticker, interval.display_name)
             with tab2:
                 st.dataframe(df)
     except Exception as e:

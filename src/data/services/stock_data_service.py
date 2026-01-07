@@ -1,15 +1,15 @@
+from __future__ import annotations
+
+import re
+from typing import Final
+
+import pandas as pd
 import yfinance as yf
 
-from functools import lru_cache
-from datetime import datetime, date
-from typing import Optional, Union, Tuple, Dict
-import pandas as pd
-import re
-
-from data.exceptions import InvalidTickerError, FetchError
+from data.exceptions import FetchError, InvalidTickerError
+from data.models import DateLike, HistoryRequest, Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
-
-DateLike = Union[str, date, datetime]
+from data.structures import LRUCache
 
 
 class StockDataService:
@@ -18,10 +18,17 @@ class StockDataService:
     """
 
     _TICKER_REGEX = re.compile(r"^[A-Z]+(?:-[A-Z]+)*$")
+    _TICKER_CACHE_SIZE: Final[int] = 32
 
-    def __init__(self, repository: SqliteStockRepository):
-        self._ticker_cache: Dict[str, yf.Ticker] = {}
-        self._history_cache: Dict[Tuple, pd.DataFrame] = {}
+    def __init__(
+        self, repository: SqliteStockRepository, history_cache_size: int = 64
+    ) -> None:
+        self._ticker_cache: LRUCache[str, yf.Ticker] = LRUCache(
+            maxsize=self._TICKER_CACHE_SIZE
+        )
+        self._history_cache: LRUCache[HistoryRequest, pd.DataFrame] = LRUCache(
+            maxsize=history_cache_size
+        )
         self._repo = repository
 
     def _validate_symbol(self, symbol: str) -> None:
@@ -39,74 +46,72 @@ class StockDataService:
     def _get_ticker(self, symbol: str) -> yf.Ticker:
         symbol = symbol.strip().upper()
 
-        if symbol not in self._ticker_cache:
-            self._ticker_cache[symbol] = yf.Ticker(symbol)
+        cached = self._ticker_cache.get(symbol)
+        if cached is not None:
+            return cached
 
-        return self._ticker_cache[symbol]
+        ticker = yf.Ticker(symbol)
+        self._ticker_cache.put(symbol, ticker)
 
-    def _save_history(self, symbol: str, interval: str, history: pd.DataFrame) -> None:
+        return ticker
+
+    def _cache_history(self, request: HistoryRequest, history: pd.DataFrame) -> None:
         if history.empty:
             return
 
-        self._repo.save_history(symbol, interval, history)
+        self._history_cache.put(request, history.copy())
 
-    # TODO: Move interval mapping to a separate utility module if needed elsewhere
-    @staticmethod
-    def _map_interval(interval: str) -> str:
-        interval = interval.strip().lower()
+    def _get_cached_history(self, request: HistoryRequest) -> pd.DataFrame | None:
+        cached = self._history_cache.get(request)
+        if cached is None:
+            return None
 
-        interval_mapping = {"day": "1d", "week": "1wk", "month": "1m"}
+        return cached.copy()
 
-        return interval_mapping.get(interval, "1d")
+    def _save_history(self, request: HistoryRequest, history: pd.DataFrame) -> None:
+        if history.empty or not request.is_unbounded:
+            return
 
-    def _check_for_data_in_cache(self, cache_key: tuple) -> bool:
-        return cache_key in self._history_cache
+        self._repo.save_history(request.symbol, request.interval.value, history)
 
-    def _get_data_from_cache(self, cache_key: tuple) -> pd.DataFrame:
-        return self._history_cache[cache_key]
-
-    def _get_data_from_db(
-        self, symbol: str, interval: str, cache_key: tuple
-    ) -> pd.DataFrame | None:
-        history = self._repo.load_history(symbol, interval)
+    def _get_data_from_db(self, request: HistoryRequest) -> pd.DataFrame | None:
+        history = self._repo.load_history(request.symbol, request.interval.value)
 
         if history is not None:
-            self._history_cache[cache_key] = history
+            self._cache_history(request, history)
 
         return history
 
     def _get_data_from_api(
         self,
-        symbol: str,
-        interval: str,
-        start: Optional[DateLike],
-        end: Optional[DateLike],
-        cache_key: tuple,
+        request: HistoryRequest,
     ) -> pd.DataFrame:
         try:
-            ticker = self._get_ticker(symbol)
-            history = ticker.history(interval=interval, start=start, end=end)
+            ticker = self._get_ticker(request.symbol)
+            history = ticker.history(
+                interval=request.interval.value,
+                start=request.start,
+                end=request.end,
+            )
 
             if history.empty:
-                raise FetchError(f"No data returned for ticker '{symbol}'.")
+                raise FetchError(f"No data returned for ticker '{request.symbol}'.")
 
-            if start is None and end is None:
-                self._repo.save_history(symbol, interval, history)
-
-            self._history_cache[cache_key] = history
+            self._cache_history(request, history)
 
             return history
 
-        except Exception:
-            raise FetchError(f"Failed to fetch data for ticker '{symbol}'.")
+        except Exception as exc:
+            raise FetchError(
+                f"Failed to fetch data for ticker '{request.symbol}'."
+            ) from exc
 
-    @lru_cache
     def get_history(
         self,
         symbol: str,
-        interval: str = "Day",
-        start: Optional[DateLike] = None,
-        end: Optional[DateLike] = None,
+        interval: Interval | str = Interval.DAY,
+        start: DateLike | None = None,
+        end: DateLike | None = None,
         force_refresh: bool = False,
     ) -> pd.DataFrame:
         """
@@ -114,22 +119,21 @@ class StockDataService:
         """
 
         self._validate_symbol(symbol)
-        symbol = symbol.strip().upper()
-
-        interval = self._map_interval(interval)
-
-        cache_key = (symbol, interval, start, end)
+        request = HistoryRequest.build(
+            symbol=symbol, interval=interval, start=start, end=end
+        )
 
         if not force_refresh:
-            if self._check_for_data_in_cache(cache_key):
-                return self._get_data_from_cache(cache_key)
+            cached = self._get_cached_history(request)
+            if cached is not None:
+                return cached
 
-            data = self._get_data_from_db(symbol, interval, cache_key)
+            data = self._get_data_from_db(request)
             if data is not None:
                 return data
 
-        data = self._get_data_from_api(symbol, interval, start, end, cache_key)
-        self._save_history(symbol, interval, data)
+        data = self._get_data_from_api(request)
+        self._save_history(request, data)
 
         return data
 

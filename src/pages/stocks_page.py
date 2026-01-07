@@ -5,8 +5,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-from data.services.stock_data_service import StockDataService
+from data.models import Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
+from data.services.stock_data_service import StockDataService
 
 st.set_page_config(page_title="Stocks List", layout="wide")
 
@@ -16,14 +17,14 @@ with st.sidebar:
     st.page_link("pages/stocks_page.py", label="Stocks List", icon="📃")
 
 
-def plot_candlestick(df: pd.DataFrame, symbol: str, interval: str) -> None:
+def plot_candlestick(df: pd.DataFrame, symbol: str, interval_label: str) -> None:
     fig = make_subplots(
         rows=2,
         cols=1,
         shared_xaxes=True,
         vertical_spacing=0.05,
         row_heights=[0.7, 0.3],
-        subplot_titles=(f"{symbol} Price ({interval})", "Volume"),
+        subplot_titles=(f"{symbol} Price ({interval_label})", "Volume"),
     )
     fig.add_trace(
         go.Candlestick(
@@ -52,7 +53,14 @@ with st.container():
         st.warning("No stocks available in the database.")
     else:
         selected = cast(str, st.selectbox("Select a stock", tickers))
-        interval = cast(str, st.selectbox("Time interval", ["Day", "Week", "Month"]))
+        interval = cast(
+            Interval,
+            st.selectbox(
+                "Time interval",
+                options=list(Interval),
+                format_func=lambda option: option.display_name,
+            ),
+        )
         if st.button("Show Data"):
             try:
                 df = service.get_history(
@@ -63,7 +71,7 @@ with st.container():
                 else:
                     tab1, tab2 = st.tabs(["Chart", "Data"])
                     with tab1:
-                        plot_candlestick(df, selected, interval)
+                        plot_candlestick(df, selected, interval.display_name)
                     with tab2:
                         st.dataframe(df)
             except Exception as e:

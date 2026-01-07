@@ -31,13 +31,11 @@ def _build_horizon_index(history: pd.DataFrame, horizon: int) -> pd.DatetimeInde
     if not isinstance(history.index, pd.DatetimeIndex):
         raise ValueError("History index must be a DatetimeIndex.")
     if len(history.index) < 2:
-        # Fallback: repeat last timestamp with 1D frequency
         last = history.index[-1]
         return pd.date_range(last, periods=horizon + 1, freq="D")[1:]
 
     inferred = pd.infer_freq(history.index)
     if inferred is None:
-        # Default to daily if we cannot infer frequency
         inferred = "D"
 
     last_timestamp = history.index[-1]

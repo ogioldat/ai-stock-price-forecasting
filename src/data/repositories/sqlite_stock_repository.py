@@ -5,10 +5,6 @@ import pandas as pd
 
 
 class SqliteStockRepository:
-    """
-    A class to represent the sqlite3 repository.
-    """
-
     def __init__(self, db_path: str = "stocks.db") -> None:
         self.db_path = db_path
         self._ensure_db()
@@ -127,9 +123,6 @@ class SqliteStockRepository:
             return df["interval"].tolist()
 
     def get_all_tickers(self) -> list[str]:
-        """
-        Get a list of all stock tickers available in the database.
-        """
         with self._get_connection() as conn:
             df = pd.read_sql_query(
                 """
