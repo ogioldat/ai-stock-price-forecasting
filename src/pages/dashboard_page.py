@@ -14,7 +14,7 @@ with st.sidebar:
     st.page_link("pages/dashboard_page.py", label="Dashboard", icon="🏠")
     st.page_link("pages/forecast_page.py", label="Trading Strategies", icon="📈")
 
-    
+
 def plot_candlestick(df: pd.DataFrame, symbol: str, interval: str) -> None:
     fig = make_subplots(
         rows=2,
