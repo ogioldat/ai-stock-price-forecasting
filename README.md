@@ -28,4 +28,14 @@ uv run streanlit run src/main.py
 uv run pytest
 ```
 
+## Forecasting module
+
+The utilities in `src/forecasting` power both the Streamlit UI and CLI tools. The module now:
+
+- normalizes any incoming price history (sorted, deduplicated, forward/back filled, and converted to a `DatetimeIndex`);
+- exposes dataclass-based configs for naive, moving-average, and ARIMA forecasts, so inputs are validated before training;
+- handles sparse or irregular data by inferring frequencies and falling back to daily stamps when necessary; and
+- emits structured logging that records the selected model, parameters, and number of history points processed.
+
+See `forecasting.baseline` and `forecasting.classical` for concrete usage examples and available configuration knobs.
 

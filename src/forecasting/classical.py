@@ -1,11 +1,20 @@
 from __future__ import annotations
 
+import logging
 from typing import Tuple
 
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
 
-from forecasting.baseline import ForecastResult, _build_horizon_index, _compute_mae
+from forecasting.baseline import (
+    ForecastResult,
+    _build_horizon_index,
+    _compute_mae,
+    normalize_history,
+)
+
+
+logger = logging.getLogger(__name__)
 
 
 def run_arima_forecast(
@@ -15,16 +24,24 @@ def run_arima_forecast(
 ) -> ForecastResult:
     """Fit an ARIMA model on the Close prices and forecast `horizon` steps ahead."""
 
-    if history.empty:
-        raise ValueError("History is empty; cannot compute ARIMA forecast.")
+    if len(order) != 3:
+        raise ValueError("ARIMA order must contain exactly three integers.")
 
-    closes = history["Close"].astype("float64")
+    cleaned_history = normalize_history(history)
+    closes = cleaned_history["Close"].astype("float64")
+
+    logger.debug(
+        "Running ARIMA forecast horizon=%s order=%s history_points=%s",
+        horizon,
+        order,
+        len(cleaned_history),
+    )
 
     model = ARIMA(closes, order=order)
     fitted = model.fit()
 
     forecast_values = fitted.forecast(steps=horizon)
-    forecast_index = _build_horizon_index(history, horizon)
+    forecast_index = _build_horizon_index(cleaned_history, horizon)
     forecast_series = pd.Series(
         forecast_values.values, index=forecast_index, name="Close"
     )
@@ -39,9 +56,9 @@ def run_arima_forecast(
         mae = _compute_mae(y_true, y_pred)
 
     return ForecastResult(
-        history=history,
+        history=cleaned_history,
         forecast=forecast_series,
         horizon=horizon,
-        model_type="naive",
+        model_type="arima",
         mae=mae,
     )
