@@ -1,6 +1,6 @@
 # Technical Overview
 
-Five excerpts from the `src/` tree that demonstrate advanced Python techniques, along with explanations and practical use cases you can cover in your presentation.
+Here are 6 excerpts from the code that demonstrate some more advanced Python techniques, along with explanations and practical use cases.
 
 ## 1. Generic LRU cache with controlled memory
 **File:** `src/data/structures.py:11-54`
