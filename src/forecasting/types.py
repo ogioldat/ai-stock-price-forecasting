@@ -11,8 +11,6 @@ ForecastType = Literal["naive", "moving_average", "arima"]
 
 @dataclass
 class ForecastResult:
-    """Container for forecast outputs and basic evaluation metrics."""
-
     history: pd.DataFrame
     forecast: pd.Series
     horizon: int

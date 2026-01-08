@@ -8,7 +8,13 @@ import pandas as pd
 from data.models import Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
 from data.services.stock_data_service import StockDataService
-from forecasting import ForecastResult, arima_forecast, run_baseline_forecast
+from forecasting import (
+    ArimaForecastConfig,
+    ForecastResult,
+    MovingAverageForecastConfig,
+    NaiveForecastConfig,
+    run_forecast,
+)
 
 
 st.set_page_config(page_title="Forecast", layout="wide")
@@ -122,27 +128,23 @@ if submitted:
         else:
             results: dict[str, ForecastResult] = {}
 
-            naive_result = run_baseline_forecast(
-                history=history,
-                horizon=int(horizon),
-                model_type="naive",
-            )
+            naive_config = NaiveForecastConfig(horizon=int(horizon))
+            naive_result = run_forecast(history=history, config=naive_config)
             results["Naive"] = naive_result
 
-            ma_result = run_baseline_forecast(
-                history=history,
+            ma_config = MovingAverageForecastConfig(
                 horizon=int(horizon),
-                model_type="moving_average",
                 window=int(ma_window),
             )
+            ma_result = run_forecast(history=history, config=ma_config)
             results["Moving average"] = ma_result
 
             try:
-                arima_result = arima_forecast(
-                    history=history,
+                arima_config = ArimaForecastConfig(
                     horizon=int(horizon),
                     order=(int(ar_p), int(ar_d), int(ar_q)),
                 )
+                arima_result = run_forecast(history=history, config=arima_config)
                 results["ARIMA"] = arima_result
             except Exception as arima_err:
                 st.warning(f"ARIMA model failed: {arima_err}")
