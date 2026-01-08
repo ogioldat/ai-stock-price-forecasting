@@ -1,4 +1,4 @@
-# Advanced Python Code Tour
+# Technical Overview
 
 Five excerpts from the `src/` tree that demonstrate advanced Python techniques, along with explanations and practical use cases you can cover in your presentation.
 
