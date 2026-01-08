@@ -7,10 +7,10 @@ from .configs import (
     NaiveForecastConfig,
 )
 from .preprocessing import build_horizon_index, normalize_history
-from .strategies import (
+from .engine import (
     moving_average_forecast,
     naive_forecast,
-    run_arima_forecast,
+    arima_forecast,
     run_baseline_forecast,
 )
 from .types import ForecastResult, ForecastType
@@ -26,6 +26,6 @@ __all__ = [
     "normalize_history",
     "naive_forecast",
     "moving_average_forecast",
-    "run_arima_forecast",
+    "arima_forecast",
     "run_baseline_forecast",
 ]

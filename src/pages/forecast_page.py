@@ -8,8 +8,7 @@ import pandas as pd
 from data.models import Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
 from data.services.stock_data_service import StockDataService
-from forecasting.baseline import ForecastResult, run_baseline_forecast
-from forecasting.classical import run_arima_forecast
+from forecasting import ForecastResult, arima_forecast, run_baseline_forecast
 
 
 st.set_page_config(page_title="Forecast", layout="wide")
@@ -139,7 +138,7 @@ if submitted:
             results["Moving average"] = ma_result
 
             try:
-                arima_result = run_arima_forecast(
+                arima_result = arima_forecast(
                     history=history,
                     horizon=int(horizon),
                     order=(int(ar_p), int(ar_d), int(ar_q)),
