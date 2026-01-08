@@ -7,7 +7,7 @@ from .configs import (
     NaiveForecastConfig,
 )
 from .preprocessing import build_horizon_index, normalize_history
-from .engine import run_forecast
+from .core import run_forecast
 from .types import ForecastResult, ForecastType
 
 __all__ = [

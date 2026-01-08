@@ -128,23 +128,28 @@ if submitted:
         else:
             results: dict[str, ForecastResult] = {}
 
-            naive_config = NaiveForecastConfig(horizon=int(horizon))
-            naive_result = run_forecast(history=history, config=naive_config)
+            naive_result = run_forecast(
+                history=history, config=NaiveForecastConfig(horizon=int(horizon))
+            )
             results["Naive"] = naive_result
 
-            ma_config = MovingAverageForecastConfig(
-                horizon=int(horizon),
-                window=int(ma_window),
+            ma_result = run_forecast(
+                history=history,
+                config=MovingAverageForecastConfig(
+                    horizon=int(horizon),
+                    window=int(ma_window),
+                ),
             )
-            ma_result = run_forecast(history=history, config=ma_config)
             results["Moving average"] = ma_result
 
             try:
-                arima_config = ArimaForecastConfig(
-                    horizon=int(horizon),
-                    order=(int(ar_p), int(ar_d), int(ar_q)),
+                arima_result = run_forecast(
+                    history=history,
+                    config=ArimaForecastConfig(
+                        horizon=int(horizon),
+                        order=(int(ar_p), int(ar_d), int(ar_q)),
+                    ),
                 )
-                arima_result = run_forecast(history=history, config=arima_config)
                 results["ARIMA"] = arima_result
             except Exception as arima_err:
                 st.warning(f"ARIMA model failed: {arima_err}")
