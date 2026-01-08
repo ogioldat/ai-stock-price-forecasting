@@ -21,9 +21,7 @@ def _build_history(values: list[float | None]) -> pd.DataFrame:
 
 
 def test_normalize_history_sorts_and_fills_missing_values() -> None:
-    raw_index = pd.to_datetime(
-        ["2024-01-02", "2024-01-01", "2024-01-01", "2024-01-03"]
-    )
+    raw_index = pd.to_datetime(["2024-01-02", "2024-01-01", "2024-01-01", "2024-01-03"])
     history = pd.DataFrame(
         {"Close": [2.0, None, 1.5, None], "Volume": [10, 11, 12, 13]},
         index=raw_index,
@@ -42,7 +40,9 @@ def test_normalize_history_sorts_and_fills_missing_values() -> None:
 
 
 def test_normalize_history_requires_close_column() -> None:
-    history = pd.DataFrame({"Open": [1, 2, 3]}, index=pd.date_range("2024-01-01", periods=3))
+    history = pd.DataFrame(
+        {"Open": [1, 2, 3]}, index=pd.date_range("2024-01-01", periods=3)
+    )
     with pytest.raises(ValueError):
         normalize_history(history)
 

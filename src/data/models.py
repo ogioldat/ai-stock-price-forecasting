@@ -66,7 +66,7 @@ class HistoryRequest:
         interval: Interval | str | None,
         start: DateLike | None = None,
         end: DateLike | None = None,
-    ) -> "HistoryRequest":
+    ) -> HistoryRequest:
         interval_obj = Interval.from_user_input(interval)
         normalized_symbol = symbol.strip().upper()
         return cls(

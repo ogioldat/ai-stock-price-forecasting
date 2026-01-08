@@ -4,6 +4,7 @@ import logging
 from functools import singledispatch
 
 import pandas as pd
+from statsmodels.tsa.arima.model import ARIMA
 
 from .configs import (
     ArimaForecastConfig,
@@ -11,8 +12,8 @@ from .configs import (
     MovingAverageForecastConfig,
     NaiveForecastConfig,
 )
-from .metrics import _compute_mae
-from .preprocessing import _build_horizon_index, normalize_history
+from .metrics import compute_mae
+from .preprocessing import build_horizon_index, normalize_history
 from .types import ForecastResult, ForecastType
 
 
@@ -26,22 +27,19 @@ def _run_with_config(config: ForecastConfig, history: pd.DataFrame) -> ForecastR
 
 @_run_with_config.register
 def _(config: NaiveForecastConfig, history: pd.DataFrame) -> ForecastResult:
-    cleaned = normalize_history(history)
     horizon = config.horizon
 
-    logger.debug("Running naive forecast horizon=%s points=%s", horizon, len(cleaned))
-
-    last_close = cleaned["Close"].iloc[-1]
-    index = _build_horizon_index(cleaned, horizon)
+    last_close = history["Close"].iloc[-1]
+    index = build_horizon_index(history, horizon)
     forecast = pd.Series(last_close, index=index, name="Close")
 
-    closes = cleaned["Close"]
+    closes = history["Close"]
     y_true = closes.iloc[-horizon:] if len(closes) >= horizon else closes
     y_pred = pd.Series(last_close, index=y_true.index, name="Close")
-    mae = _compute_mae(y_true, y_pred)
+    mae = compute_mae(y_true, y_pred)
 
     return ForecastResult(
-        history=cleaned,
+        history=history,
         forecast=forecast,
         horizon=horizon,
         model_type="naive",
@@ -51,29 +49,21 @@ def _(config: NaiveForecastConfig, history: pd.DataFrame) -> ForecastResult:
 
 @_run_with_config.register
 def _(config: MovingAverageForecastConfig, history: pd.DataFrame) -> ForecastResult:
-    cleaned = normalize_history(history)
     horizon = config.horizon
-    window = min(config.window, len(cleaned))
+    window = min(config.window, len(history))
 
-    logger.debug(
-        "Running moving-average forecast horizon=%s window=%s effective_window=%s",
-        horizon,
-        config.window,
-        window,
-    )
-
-    closes = cleaned["Close"]
+    closes = history["Close"]
     last_ma = closes.rolling(window=window, min_periods=1).mean().iloc[-1]
-    index = _build_horizon_index(cleaned, horizon)
+    index = build_horizon_index(history, horizon)
     forecast = pd.Series(last_ma, index=index, name="Close")
 
     y_true = closes.iloc[-horizon:] if len(closes) >= horizon else closes
     rolling_ma = closes.rolling(window=window, min_periods=1).mean()
     y_pred = rolling_ma.iloc[-len(y_true) :]
-    mae = _compute_mae(y_true, y_pred)
+    mae = compute_mae(y_true, y_pred)
 
     return ForecastResult(
-        history=cleaned,
+        history=history,
         forecast=forecast,
         horizon=horizon,
         model_type="moving_average",
@@ -83,9 +73,51 @@ def _(config: MovingAverageForecastConfig, history: pd.DataFrame) -> ForecastRes
 
 @_run_with_config.register
 def _(config: ArimaForecastConfig, history: pd.DataFrame) -> ForecastResult:
-    from forecasting.classical import run_arima_forecast
-
     return run_arima_forecast(history, horizon=config.horizon, order=config.order)
+
+
+def run_arima_forecast(
+    history: pd.DataFrame,
+    horizon: int = 5,
+    order: tuple[int, int, int] = (1, 1, 0),
+) -> ForecastResult:
+    if len(order) != 3:
+        raise ValueError("ARIMA order must contain exactly three integers.")
+
+    closes = history["Close"].astype("float64")
+
+    logger.debug(
+        "Running ARIMA forecast horizon=%s order=%s history_points=%s",
+        horizon,
+        order,
+        len(history),
+    )
+
+    model = ARIMA(closes, order=order)
+    fitted = model.fit()
+
+    forecast_values = fitted.forecast(steps=horizon)
+    forecast_index = build_horizon_index(history, horizon)
+    forecast_series = pd.Series(
+        forecast_values.values, index=forecast_index, name="Close"
+    )
+
+    mae = None
+    if len(closes) > horizon:
+        start = len(closes) - horizon
+        end = len(closes) - 1
+        y_true = closes.iloc[start : end + 1]
+        y_pred = fitted.predict(start=start, end=end)
+        y_pred = pd.Series(y_pred.values, index=y_true.index)
+        mae = compute_mae(y_true, y_pred)
+
+    return ForecastResult(
+        history=history,
+        forecast=forecast_series,
+        horizon=horizon,
+        model_type="arima",
+        mae=mae,
+    )
 
 
 def naive_forecast(
@@ -94,8 +126,6 @@ def naive_forecast(
     *,
     config: NaiveForecastConfig | None = None,
 ) -> ForecastResult:
-    """Naive forecast: repeat the last observed Close price."""
-
     resolved = config or NaiveForecastConfig(horizon=horizon)
     return _run_with_config(resolved, history)
 
@@ -107,8 +137,6 @@ def moving_average_forecast(
     *,
     config: MovingAverageForecastConfig | None = None,
 ) -> ForecastResult:
-    """Moving-average forecast based on the last ``window`` closes."""
-
     resolved = config or MovingAverageForecastConfig(horizon=horizon, window=window)
     return _run_with_config(resolved, history)
 
@@ -154,6 +182,7 @@ def run_baseline_forecast(
     config: ForecastConfig | None = None,
     arima_order: tuple[int, int, int] | None = None,
 ) -> ForecastResult:
+    history = normalize_history(history)
     resolved_config = _resolve_config(
         model_type,
         config=config,

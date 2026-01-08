@@ -9,8 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 def normalize_history(history: pd.DataFrame) -> pd.DataFrame:
-    """Return a cleaned copy of the history frame used by all forecasting routines."""
-
     if not isinstance(history, pd.DataFrame):
         raise TypeError("History must be a pandas DataFrame.")
     if "Close" not in history.columns:
@@ -49,7 +47,7 @@ def normalize_history(history: pd.DataFrame) -> pd.DataFrame:
     return normalized
 
 
-def _build_horizon_index(history: pd.DataFrame, horizon: int) -> pd.DatetimeIndex:
+def build_horizon_index(history: pd.DataFrame, horizon: int) -> pd.DatetimeIndex:
     if not isinstance(history.index, pd.DatetimeIndex):
         raise ValueError("History index must be a DatetimeIndex.")
     if len(history.index) < 2:

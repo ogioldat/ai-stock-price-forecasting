@@ -13,10 +13,6 @@ from data.structures import LRUCache
 
 
 class StockDataService:
-    """
-    Service responsible for fetching and optionally caching stock data.
-    """
-
     _TICKER_REGEX = re.compile(r"^[A-Z]+(?:-[A-Z]+)*$")
     _TICKER_CACHE_SIZE: Final[int] = 32
 
@@ -114,10 +110,6 @@ class StockDataService:
         end: DateLike | None = None,
         force_refresh: bool = False,
     ) -> pd.DataFrame:
-        """
-        Fetch the historical data for a given symbol. Cached for repeated symbols.
-        """
-
         self._validate_symbol(symbol)
         request = HistoryRequest.build(
             symbol=symbol, interval=interval, start=start, end=end
