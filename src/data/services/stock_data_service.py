@@ -65,7 +65,7 @@ class StockDataService:
         return cached.copy()
 
     def _save_history(self, request: HistoryRequest, history: pd.DataFrame) -> None:
-        if history.empty or not request.is_unbounded:
+        if history.empty:
             return
 
         self._repo.save_history(request.symbol, request.interval.value, history)
@@ -84,11 +84,19 @@ class StockDataService:
     ) -> pd.DataFrame:
         try:
             ticker = self._get_ticker(request.symbol)
-            history = ticker.history(
-                interval=request.interval.value,
-                start=request.start,
-                end=request.end,
-            )
+
+            history_kwargs: dict[str, object] = {
+                "interval": request.interval.value,
+            }
+            if request.start is None and request.end is None:
+                history_kwargs["period"] = "max"
+            else:
+                if request.start is not None:
+                    history_kwargs["start"] = request.start
+                if request.end is not None:
+                    history_kwargs["end"] = request.end
+
+            history = ticker.history(**history_kwargs)
 
             if history.empty:
                 raise FetchError(f"No data returned for ticker '{request.symbol}'.")

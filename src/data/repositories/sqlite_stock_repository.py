@@ -35,10 +35,11 @@ class SqliteStockRepository:
     def save_history(
         self, symbol: str, interval: str, history_data: pd.DataFrame
     ) -> None:
+        
         if history_data.empty:
             return
 
-        history_data.copy()
+        history_data = history_data.copy()
         history_data.reset_index(inplace=True)
 
         rows = [
@@ -58,6 +59,7 @@ class SqliteStockRepository:
             )
             for _, row in history_data.iterrows()
         ]
+    
 
         with self._get_connection() as conn:
             conn.executemany(

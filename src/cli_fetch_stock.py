@@ -12,7 +12,7 @@ from data.models import Interval
 from data.repositories.sqlite_stock_repository import SqliteStockRepository
 from data.services.stock_data_service import StockDataService
 
-DEFAULT_DB_PATH = Path("./src/stocks.db")
+DEFAULT_DB_PATH = Path("stocks.db")
 DEFAULT_INTERVAL = Interval.DAY
 
 
@@ -121,7 +121,7 @@ def main() -> int:
             f"{args.end.isoformat() if args.end else 'latest'}"
         )
 
-    print(_format_dataframe(df, args.rows))
+    # print(_format_dataframe(df, args.rows))
 
     return 0
 

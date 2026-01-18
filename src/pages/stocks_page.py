@@ -13,8 +13,9 @@ st.set_page_config(page_title="Stocks List", layout="wide")
 
 with st.sidebar:
     st.page_link("pages/dashboard_page.py", label="Dashboard", icon="🏠")
-    st.page_link("pages/search_page.py", label="Stocks Search", icon="🔎")
     st.page_link("pages/stocks_page.py", label="Stocks List", icon="📃")
+    st.page_link("pages/forecast_page.py", label="Forecast", icon="📈")
+    st.page_link("pages/strategies_page.py", label="Trading strategies", icon="🧠")
 
 
 def plot_candlestick(df: pd.DataFrame, symbol: str, interval_label: str) -> None:
