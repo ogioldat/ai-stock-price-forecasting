@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Stock Price Viewer", layout="wide")
+st.set_page_config(page_title="AI Stock Dashboard", layout="wide")
 
 with st.sidebar:
     st.page_link("pages/dashboard_page.py", label="Dashboard", icon="🏠")
@@ -8,35 +8,18 @@ with st.sidebar:
     st.page_link("pages/forecast_page.py", label="Forecast", icon="📈")
     st.page_link("pages/strategies_page.py", label="Trading strategies", icon="🧠")
 
-with st.container():
-    st.title("Stock Price Viewer")
-    st.write(
-        """
-        This application allows you to visualize stock price data using candlestick charts.
-        Select a stock symbol and time interval to view the corresponding price and volume data.
-        """
-    )
+st.title("AI Stock Toolkit")
+st.caption("Browse prices, run forecasts, and experiment with trading rules in one place.")
 
-    st.markdown(
-        """
-        **Features:**
-        - View candlestick charts for various stock symbols.
-        - Analyze stock price movements over different time intervals.
-        - Interactive charts with zoom and pan capabilities.
-        """
-    )
-    st.markdown(
-        """
-        **Instructions:**
-        1. Navigate to the "Stocks" page using the sidebar.
-        2. Select a stock symbol from the dropdown menu.
-        3. Choose a time interval (e.g., 1 day, 1 week, 1 month).
-        4. View the generated candlestick chart and volume data.
-        """
-    )
-    st.markdown(
-        """
-        **Note:** Ensure you have a stable internet connection to fetch the latest stock data.
-        """
-    )
-    st.markdown("© 2024 Stock Price Viewer. All rights reserved.")
+col1, col2, col3 = st.columns(3)
+col1.metric("Tracked top stocks", "AMZN, META, NVDA...", "")
+col2.metric("Data source", "yfinance", help="Fetched via the CLI or UI pages")
+col3.metric("Strategies", "MA crossover", "")
+
+st.divider()
+
+st.subheader("What you can do")
+feat_cols = st.columns(3)
+feat_cols[0].write("**Visualize**\n\nCandlestick charts with volume overlays, quick filtering, and data export.")
+feat_cols[1].write("**Forecast**\n\nRun the forecasting notebook logic through the UI and compare scenarios.")
+feat_cols[2].write("**Backtest**\n\nTry the moving-average crossover, then auto-tune it with the new genetic/ACO tool.")
