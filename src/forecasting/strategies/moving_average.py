@@ -12,6 +12,21 @@ def run_moving_average_strategy(
     history: pd.DataFrame,
     config: MovingAverageForecastConfig,
 ) -> ForecastResult:
+    """
+    Forecast prices by extending the latest moving average across the horizon.
+
+    Parameters
+    ----------
+    history:
+        Cleaned dataframe with at least one `Close` observation.
+    config:
+        Moving-average configuration controlling window size and horizon.
+
+    Returns
+    -------
+    ForecastResult
+        Result bundle containing the constant forecast series and evaluation stats.
+    """
     horizon = config.horizon
     window = min(config.window, len(history))
 

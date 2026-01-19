@@ -18,6 +18,26 @@ def run_arima_strategy(
     history: pd.DataFrame,
     config: ArimaForecastConfig,
 ) -> ForecastResult:
+    """
+    Fit and forecast an ARIMA model over the closing price series.
+
+    Parameters
+    ----------
+    history:
+        Cleaned dataframe containing a numeric `Close` column.
+    config:
+        ARIMA configuration describing the p/d/q order and forecast horizon.
+
+    Returns
+    -------
+    ForecastResult
+        Structured result with fitted ARIMA projections and optional MAE estimates.
+
+    Raises
+    ------
+    ValueError
+        If the ARIMA order tuple does not contain exactly three integers.
+    """
     if len(config.order) != 3:
         raise ValueError("ARIMA order must contain exactly three integers.")
 

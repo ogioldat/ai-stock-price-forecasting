@@ -9,6 +9,27 @@ logger = logging.getLogger(__name__)
 
 
 def normalize_history(history: pd.DataFrame) -> pd.DataFrame:
+    """
+    Clean and normalize a price history frame prior to modeling.
+
+    Parameters
+    ----------
+    history:
+        Raw OHLCV frame whose index may be unsorted/untyped and contain gaps.
+
+    Returns
+    -------
+    pd.DataFrame
+        Copy of the frame sorted by timestamp with a tz-naive `DatetimeIndex`
+        and a fully populated numeric `Close` column.
+
+    Raises
+    ------
+    TypeError
+        When the input is not a dataframe.
+    ValueError
+        If required columns are missing or the cleaning step drops all rows.
+    """
     if not isinstance(history, pd.DataFrame):
         raise TypeError("History must be a pandas DataFrame.")
     if "Close" not in history.columns:
@@ -48,6 +69,26 @@ def normalize_history(history: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_horizon_index(history: pd.DataFrame, horizon: int) -> pd.DatetimeIndex:
+    """
+    Extend a history index to cover the desired forecast horizon.
+
+    Parameters
+    ----------
+    history:
+        Cleaned dataframe whose index defines the cadence of observations.
+    horizon:
+        Number of future observations that downstream forecasts will produce.
+
+    Returns
+    -------
+    pd.DatetimeIndex
+        Datetime index of length `horizon` that continues the last known cadence.
+
+    Raises
+    ------
+    ValueError
+        If the history index is not already a `DatetimeIndex`.
+    """
     if not isinstance(history.index, pd.DatetimeIndex):
         raise ValueError("History index must be a DatetimeIndex.")
     if len(history.index) < 2:

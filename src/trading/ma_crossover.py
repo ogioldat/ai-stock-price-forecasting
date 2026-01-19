@@ -27,7 +27,28 @@ class MACrossoverBacktestResult:
 def ma_crossover_signals(
     close: pd.Series, short_window: int, long_window: int
 ) -> pd.DataFrame:
-    """Compute moving-average crossovers for the supplied close prices."""
+    """
+    Compute fast/slow moving averages and label crossover events.
+
+    Parameters
+    ----------
+    close:
+        Series of closing prices indexed by timestamp.
+    short_window:
+        Lookback window for the fast moving average.
+    long_window:
+        Lookback window for the slow moving average.
+
+    Returns
+    -------
+    pd.DataFrame
+        Frame with the original prices, rolling averages, and boolean crossover flags.
+
+    Raises
+    ------
+    ValueError
+        If either window is non-positive or the short window is not less than the long.
+    """
     if short_window <= 0 or long_window <= 0:
         raise ValueError("Window sizes must be positive integers.")
     if short_window >= long_window:
@@ -57,6 +78,23 @@ def _compute_metrics(
     equity_curve: pd.Series,
     periods_per_year: int = 252,
 ) -> MACrossoverMetrics:
+    """
+    Summarize strategy performance into commonly used risk/return metrics.
+
+    Parameters
+    ----------
+    strategy_returns:
+        Net returns produced by the trading logic at each bar.
+    equity_curve:
+        Compounded value of the portfolio corresponding to the returns.
+    periods_per_year:
+        Number of sample periods in a trading year (used for annualization).
+
+    Returns
+    -------
+    MACrossoverMetrics
+        Dataclass aggregating total/annualized returns, volatility, Sharpe, drawdown, etc.
+    """
     returns = strategy_returns.astype(float)
     equity = equity_curve.astype(float)
 
@@ -102,7 +140,29 @@ def backtest_ma_crossover(
     fee_bps: float = 10.0,
     initial_cash: float = 10_000.0,
 ) -> MACrossoverBacktestResult:
-    """Backtest a moving-average crossover trading rule."""
+    """
+    Backtest a moving-average crossover trading rule.
+
+    Parameters
+    ----------
+    df:
+        History dataframe with a numeric `Close` column.
+    short_window:
+        Number of periods for the fast moving average.
+    long_window:
+        Number of periods for the slow moving average (must be larger).
+    long_only:
+        Restrict exposure to {0, 1} if True, else permit {-1, 0, 1}.
+    fee_bps:
+        Transaction fee in basis points applied to turnover.
+    initial_cash:
+        Starting notional value used to scale the equity curve.
+
+    Returns
+    -------
+    MACrossoverBacktestResult
+        Struct containing signal diagnostics, realized trades, and summary metrics.
+    """
     if "Close" not in df.columns:
         raise ValueError("Input dataframe must contain a 'Close' column.")
     if len(df) < max(short_window, long_window):
@@ -152,4 +212,3 @@ def backtest_ma_crossover(
         trades=trades,
         metrics=metrics,
     )
-

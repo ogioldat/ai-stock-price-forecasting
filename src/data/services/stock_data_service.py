@@ -82,6 +82,25 @@ class StockDataService:
         self,
         request: HistoryRequest,
     ) -> pd.DataFrame:
+        """
+        Fetch history data from the upstream API and cache the successful result.
+
+        Parameters
+        ----------
+        request:
+            Fully validated history request describing the ticker, interval,
+            and optional start/end bounds.
+
+        Returns
+        -------
+        pd.DataFrame
+            Raw frame returned by yfinance, indexed by timestamp.
+
+        Raises
+        ------
+        FetchError
+            If the upstream provider fails or returns an empty dataset.
+        """
         try:
             ticker = self._get_ticker(request.symbol)
 
@@ -118,6 +137,34 @@ class StockDataService:
         end: DateLike | None = None,
         force_refresh: bool = False,
     ) -> pd.DataFrame:
+        """
+        Resolve a ticker's OHLCV history via cache, database, or API fetch.
+
+        Parameters
+        ----------
+        symbol:
+            Desired ticker symbol; validation and normalization are applied.
+        interval:
+            Interval enum or literal passed through to yfinance (defaults to daily).
+        start:
+            Optional inclusive start date for the history window.
+        end:
+            Optional exclusive end date for the window.
+        force_refresh:
+            When True, bypasses caches and always pulls fresh data from the API.
+
+        Returns
+        -------
+        pd.DataFrame
+            Historical price data indexed by timestamp.
+
+        Raises
+        ------
+        InvalidTickerError
+            If the ticker symbol cannot be normalized/validated.
+        FetchError
+            When every data source fails to provide history for the ticker.
+        """
         self._validate_symbol(symbol)
         request = HistoryRequest.build(
             symbol=symbol, interval=interval, start=start, end=end

@@ -40,5 +40,20 @@ def _(config: ArimaForecastConfig, history: pd.DataFrame) -> ForecastResult:
 
 
 def run_forecast(history: pd.DataFrame, config: ForecastConfig) -> ForecastResult:
+    """
+    Normalize the supplied history and dispatch to the appropriate strategy.
+
+    Parameters
+    ----------
+    history:
+        Raw OHLCV dataframe used as the modeling universe.
+    config:
+        Specific forecast configuration dataclass (naive, moving average, ARIMA).
+
+    Returns
+    -------
+    ForecastResult
+        Structured output containing the cleaned history, predictions, and metadata.
+    """
     normalized = normalize_history(history)
     return _run_with_config(config, normalized)

@@ -29,6 +29,19 @@ class MATuningResult:
 
 
 def _metric_selector(metric_name: str) -> Callable[[MACrossoverMetrics], float]:
+    """
+    Build a selector function for the requested performance metric.
+
+    Parameters
+    ----------
+    metric_name:
+        Name of the metric to optimize (e.g. 'total_return', 'sharpe').
+
+    Returns
+    -------
+    Callable[[MACrossoverMetrics], float]
+        Function that extracts the metric as a float for comparison.
+    """
     normalized = metric_name.strip().lower()
     if normalized == "sharpe":
         return lambda metrics: (
@@ -40,6 +53,23 @@ def _metric_selector(metric_name: str) -> Callable[[MACrossoverMetrics], float]:
 
 
 def _weighted_choice(values: np.ndarray, weights: np.ndarray, rng: np.random.Generator) -> int:
+    """
+    Draw an index from `values` using the (possibly unnormalized) weight vector.
+
+    Parameters
+    ----------
+    values:
+        Candidate values being sampled.
+    weights:
+        Positive weights controlling the probability mass per candidate.
+    rng:
+        NumPy random generator used for reproducible sampling.
+
+    Returns
+    -------
+    int
+        Index within `values` chosen according to the normalized weights.
+    """
     total = float(weights.sum())
     if total <= 0:
         probabilities = np.full_like(weights, 1.0 / len(weights), dtype=float)
@@ -67,6 +97,35 @@ def tune_ma_crossover(
 ) -> MATuningResult:
     """
     Hybrid genetic / ant-colony tuner for MA crossover parameters.
+
+    Parameters
+    ----------
+    df:
+        Price history used as the backtesting input.
+    short_window_range:
+        Inclusive range of candidate short moving-average windows.
+    long_window_range:
+        Inclusive range of candidate long moving-average windows.
+    population_size:
+        Number of candidates evaluated per iteration.
+    iterations:
+        Number of pheromone update rounds to run.
+    evaporation:
+        Fraction of pheromone removed at every iteration.
+    pheromone_deposit:
+        Scale factor applied when reinforcing winning candidates.
+    metric:
+        Performance metric optimized by the tuner.
+    long_only, fee_bps, initial_cash:
+        Options forwarded to `backtest_ma_crossover`.
+    random_seed:
+        Optional seed for the RNG powering stochastic selections.
+
+    Returns
+    -------
+    MATuningResult
+        Collection that exposes the best candidate, its backtest output,
+        and every evaluated parameter set for analysis.
     """
     if not 0 < evaporation < 1:
         raise ValueError("evaporation must be between 0 and 1.")

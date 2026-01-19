@@ -12,6 +12,21 @@ def run_naive_strategy(
     history: pd.DataFrame,
     config: NaiveForecastConfig,
 ) -> ForecastResult:
+    """
+    Propagate the latest closing price forward for all points in the horizon.
+
+    Parameters
+    ----------
+    history:
+        Cleaned dataframe with the `Close` column populated.
+    config:
+        Naive forecast configuration providing the forecast horizon length.
+
+    Returns
+    -------
+    ForecastResult
+        Package containing the level forecast and associated MAE diagnostics.
+    """
     horizon = config.horizon
 
     last_close = history["Close"].iloc[-1]
