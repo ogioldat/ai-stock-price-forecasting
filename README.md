@@ -1,4 +1,4 @@
-# AI Stock Price Forecasting
+# AI Stock Forecasting & Trading Strategy
 
 Explore stock forecasts and trading signals backed by local data storage.
 
