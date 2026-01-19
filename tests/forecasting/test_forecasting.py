@@ -1,18 +1,19 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from forecasting.baseline import (
+from forecasting import (
     ArimaForecastConfig,
     ForecastResult,
     MovingAverageForecastConfig,
     NaiveForecastConfig,
     normalize_history,
-    run_baseline_forecast,
+    run_forecast,
 )
-from forecasting.classical import run_arima_forecast
 
 
 def _build_history(values: list[float | None]) -> pd.DataFrame:
@@ -49,11 +50,7 @@ def test_normalize_history_requires_close_column() -> None:
 
 def test_naive_forecast_uses_configured_horizon() -> None:
     history = _build_history([100, 101, 102])
-    result = run_baseline_forecast(
-        history,
-        model_type="naive",
-        config=NaiveForecastConfig(horizon=2),
-    )
+    result = run_forecast(history, config=NaiveForecastConfig(horizon=2))
 
     assert isinstance(result, ForecastResult)
     assert len(result.forecast) == 2
@@ -62,9 +59,8 @@ def test_naive_forecast_uses_configured_horizon() -> None:
 
 def test_moving_average_forecast_adjusts_window() -> None:
     history = _build_history([10, 11, 12])
-    result = run_baseline_forecast(
+    result = run_forecast(
         history,
-        model_type="moving_average",
         config=MovingAverageForecastConfig(horizon=1, window=10),
     )
 
@@ -77,8 +73,8 @@ def test_arima_forecast_config_flow() -> None:
     values = list(np.linspace(50, 60, num=16))
     history = _build_history(values)
 
-    config = ArimaForecastConfig(horizon=3, order=(1, 1, 0))
-    result = run_baseline_forecast(history, model_type="arima", config=config)
+    config = ArimaForecastConfig(horizon=3, order=(0, 1, 0))
+    result = run_forecast(history, config=config)
 
     assert len(result.forecast) == 3
     assert result.model_type == "arima"
@@ -89,15 +85,19 @@ def test_run_arima_forecast_handles_string_index() -> None:
     dates = ["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04"]
     history = pd.DataFrame({"Close": [1, 2, 3, 4]}, index=dates)
 
-    result = run_arima_forecast(history, horizon=1, order=(1, 1, 0))
+    result = run_forecast(history, config=NaiveForecastConfig(horizon=1))
 
     assert result.history.index.dtype == "datetime64[ns]"
     assert len(result.forecast) == 1
 
 
-def test_mismatched_config_raises_error() -> None:
-    history = _build_history([1, 2, 3])
-    config = MovingAverageForecastConfig(horizon=2, window=2)
+@dataclass
+class _UnknownConfig:
+    horizon: int = 1
 
-    with pytest.raises(ValueError):
-        run_baseline_forecast(history, model_type="naive", config=config)
+
+def test_unregistered_config_raises_error() -> None:
+    history = _build_history([1, 2, 3])
+
+    with pytest.raises(TypeError):
+        run_forecast(history, config=_UnknownConfig())

@@ -35,8 +35,8 @@ dependencies = [
 
 [tool.pytest.ini_options]
 python_files = "test_*.py"
-testpaths = "api/tests"
-pythonpath = "api"
+testpaths = "tests"
+pythonpath = "src"
 
 [tool.mypy]
 python_version = "3.13"
