@@ -1,6 +1,6 @@
 # AI Stock Price Forecasting
 
-Streamlit app for exploring stock forecasts and trading signals backed by local data storage.
+Explore stock forecasts and trading signals backed by local data storage.
 
 ## Features
 - Streamlit UI (`src/main.py`) for interactive forecasts and trading views.
