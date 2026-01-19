@@ -144,8 +144,8 @@ def tune_ma_crossover(
     short_values = np.arange(short_window_range[0], short_window_range[1] + 1, dtype=int)
     long_values = np.arange(long_window_range[0], long_window_range[1] + 1, dtype=int)
 
-    short_index = {value: idx for idx, value in enumerate(short_values)}
-    long_index = {value: idx for idx, value in enumerate(long_values)}
+    short_index = {int(value): idx for idx, value in enumerate(short_values)}
+    long_index = {int(value): idx for idx, value in enumerate(long_values)}
 
     pher_short = np.ones_like(short_values, dtype=float)
     pher_long = np.ones_like(long_values, dtype=float)
