@@ -1,6 +1,6 @@
 version = 1
 revision = 3
-requires-python = "==3.13.*"
+requires-python = "==3.13.15"
 
 [[package]]
 name = "altair"
@@ -76,11 +76,11 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi" },
-    { name = "ipykernel", specifier = ">=7.1.0" },
-    { name = "nbformat", specifier = ">=5.10.4" },
+    { name = "ipykernel", specifier = "==7.1.0" },
+    { name = "nbformat", specifier = "==5.10.4" },
     { name = "plotly" },
     { name = "pydantic" },
-    { name = "scikit-opt", specifier = ">=0.6.6" },
+    { name = "scikit-opt", specifier = "==0.6.6" },
     { name = "starlette" },
     { name = "statsmodels" },
     { name = "streamlit" },
