@@ -8,7 +8,7 @@ authors = [
   {name = "Tomek", email = "tomek@student.agh.edu.pl"},
 ]
 readme = "README.md"
-requires-python = "==3.13.*"
+requires-python = "==3.13.15"
 dependencies = [
   "fastapi",
   "pydantic",
@@ -18,9 +18,9 @@ dependencies = [
   "streamlit",
   "plotly",
   "statsmodels",
-  "ipykernel>=7.1.0",
-  "nbformat>=5.10.4",
-  "scikit-opt>=0.6.6",
+  "ipykernel==7.1.0",
+  "nbformat==5.10.4",
+  "scikit-opt==0.6.6",
 ]
 
 [dependency-groups]
@@ -52,7 +52,7 @@ ignore_missing_imports = true
 
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools==84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.coverage.report]
